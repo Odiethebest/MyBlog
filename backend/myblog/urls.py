@@ -3,5 +3,7 @@ from django.urls import path, include
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("blog/", include("apps.blog.urls")),
+
+    path("blog/", include("apps.blog.urls")),          # CRUD
+    path("", include("apps.blog.query_urls")),         # search/categories/tags/archives
 ]
