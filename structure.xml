@@ -1,0 +1,30 @@
+<!--myblog/-->
+<!--  backend/-->
+<!--    manage.py-->
+<!--    myblog/                 # project config-->
+<!--      settings/-->
+<!--        base.py-->
+<!--        local.py-->
+<!--        prod.py-->
+<!--      urls.py-->
+<!--      wsgi.py-->
+<!--      asgi.py-->
+<!--    apps/-->
+<!--      accounts/             # 用户/管理员/ OAuth-->
+<!--      blog/                 # Post + search + view stats-->
+<!--      taxonomy/             # Category/Tag/Archive-->
+<!--      interactions/         # Comment + Message board-->
+<!--      links/                # Friend links-->
+<!--      files/                # Uploads + file management-->
+<!--      settings_site/        # System settings (site_name, flags)-->
+<!--      stats/                # admin stats overview/posts-->
+<!--      web/                  # 前端页面（templates + static）-->
+<!--    common/                 # 通用：permissions, pagination, utils, service layer-->
+<!--    tests/                  # 集成测试/核心路径测试-->
+<!--  docker/-->
+<!--    Dockerfile-->
+<!--  docker-compose.yml-->
+<!--  .github/workflows/ci.yml-->
+<!--  Pipfile-->
+<!--  Pipfile.lock-->
+<!--  README.md-->
