@@ -1,16 +1,14 @@
 from django.db.models import Q, Count
 from django.db.models.functions import ExtractYear, ExtractMonth
+
+from rest_framework import generics, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from rest_framework import generics
 from .models import Post
 from .serializers import PostSerializer
+from apps.taxonomy.pagination import StandardPagination  # 复用分页
 
-from .models import Post
-from apps.taxonomy.models import Tag
-from apps.taxonomy.pagination import StandardPagination  # 复用你刚写的分页
-# 如果你没把 pagination 放 taxonomy，也可以复制一份到 blog
 
 def _excerpt(text: str, n: int = 120) -> str:
     if not text:
@@ -18,17 +16,34 @@ def _excerpt(text: str, n: int = 120) -> str:
     text = " ".join(text.split())
     return text[:n] + ("..." if len(text) > n else "")
 
+
 def _content_of(p: Post) -> str:
-    return getattr(p, "content", "") or getattr(p, "content_markdown", "") or ""
+    # 你的模型是 content_markdown / excerpt / content_html
+    return (getattr(p, "content_markdown", "") or getattr(p, "excerpt", "") or getattr(p, "content_html", "") or "")
+
+
+class IsAdminOrReadOnly(permissions.BasePermission):
+    """
+    GET/HEAD/OPTIONS 允许所有人
+    POST/PUT/PATCH/DELETE 仅管理员
+    """
+    def has_permission(self, request, view):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        return bool(request.user and request.user.is_staff)
+
 
 class BlogListCreateView(generics.ListCreateAPIView):
     queryset = Post.objects.all().order_by("-created_at")
     serializer_class = PostSerializer
+    permission_classes = [IsAdminOrReadOnly]
+
 
 class BlogRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
     lookup_url_kwarg = "post_id"
+    permission_classes = [IsAdminOrReadOnly]
 
 
 class BlogSearchAPI(APIView):
@@ -41,8 +56,9 @@ class BlogSearchAPI(APIView):
         if q:
             qs = qs.filter(
                 Q(title__icontains=q) |
-                Q(content__icontains=q) |
-                Q(content_markdown__icontains=q)
+                Q(content_markdown__icontains=q) |
+                Q(excerpt__icontains=q) |
+                Q(content_html__icontains=q)
             )
 
         qs = qs.order_by("-created_at").distinct()

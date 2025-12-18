@@ -86,3 +86,70 @@ class AdminCommentApproveAPI(APIView):
         comment.is_approved = True
         comment.save(update_fields=["is_approved"])
         return Response({"id": comment.id, "is_approved": comment.is_approved}, status=status.HTTP_200_OK)
+
+class AdminPendingCommentListAPI(generics.ListAPIView):
+    serializer_class = CommentSerializer
+    pagination_class = StandardPagination
+    permission_classes = [permissions.IsAdminUser]
+
+    def get_queryset(self):
+        return Comment.objects.filter(is_approved=False).order_by("-created_at")
+
+    def list(self, request, *args, **kwargs):
+        qs = self.get_queryset()
+        page = self.paginate_queryset(qs)
+        ser = self.get_serializer(page, many=True)
+        p = self.paginator
+        return Response({
+            "page": p.page.number,
+            "page_size": p.get_page_size(request),
+            "total": qs.count(),
+            "pending_comments": ser.data,
+        })
+
+
+class AdminApproveCommentAPI(generics.UpdateAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    lookup_url_kwarg = "comment_id"
+    permission_classes = [permissions.IsAdminUser]
+
+    def update(self, request, *args, **kwargs):
+        obj = self.get_object()
+        obj.is_approved = True
+        obj.save(update_fields=["is_approved"])
+        return Response({"id": obj.id, "is_approved": obj.is_approved})
+
+
+class AdminPendingMessageListAPI(generics.ListAPIView):
+    serializer_class = MessageSerializer
+    pagination_class = StandardPagination
+    permission_classes = [permissions.IsAdminUser]
+
+    def get_queryset(self):
+        return Message.objects.filter(is_approved=False).order_by("-created_at")
+
+    def list(self, request, *args, **kwargs):
+        qs = self.get_queryset()
+        page = self.paginate_queryset(qs)
+        ser = self.get_serializer(page, many=True)
+        p = self.paginator
+        return Response({
+            "page": p.page.number,
+            "page_size": p.get_page_size(request),
+            "total": qs.count(),
+            "pending_messages": ser.data,
+        })
+
+
+class AdminApproveMessageAPI(generics.UpdateAPIView):
+    queryset = Message.objects.all()
+    serializer_class = MessageSerializer
+    lookup_url_kwarg = "message_id"
+    permission_classes = [permissions.IsAdminUser]
+
+    def update(self, request, *args, **kwargs):
+        obj = self.get_object()
+        obj.is_approved = True
+        obj.save(update_fields=["is_approved"])
+        return Response({"id": obj.id, "is_approved": obj.is_approved})
