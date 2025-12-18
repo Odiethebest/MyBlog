@@ -1,7 +1,8 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, permissions
 from rest_framework.response import Response
-
+from rest_framework import status
+from rest_framework.views import APIView
 from apps.blog.models import Post
 from .models import Comment, Message
 from .serializers import CommentSerializer, MessageSerializer
@@ -76,3 +77,12 @@ class AdminCommentDeleteAPI(generics.DestroyAPIView):
     serializer_class = CommentSerializer
     lookup_url_kwarg = "comment_id"
     permission_classes = [permissions.IsAdminUser]
+
+class AdminCommentApproveAPI(APIView):
+    permission_classes = [permissions.IsAdminUser]
+
+    def post(self, request, comment_id: int):
+        comment = get_object_or_404(Comment, id=comment_id)
+        comment.is_approved = True
+        comment.save(update_fields=["is_approved"])
+        return Response({"id": comment.id, "is_approved": comment.is_approved}, status=status.HTTP_200_OK)
